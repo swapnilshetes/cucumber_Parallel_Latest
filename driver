@@ -1,0 +1,121 @@
+/**
+ * 
+ */
+package com.indecomm.api;
+
+import java.io.File;
+import java.io.FileReader;
+
+/**
+ * @author navjotkochar
+ */
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ContainerFactory;
+import org.json.simple.parser.JSONParser;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.openqa.selenium.remote.DesiredCapabilities;
+
+import com.mongodb.util.JSON;
+
+import io.appium.java_client.AppiumDriver;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.ios.IOSDriver;
+import io.appium.java_client.remote.IOSMobileCapabilityType;
+
+public class AppiumDriverContext {
+	// public static IOSDriverContext driverContext;
+	private AppiumDriver driver;
+	static JSONParser parser = new JSONParser();
+	
+	@BeforeClass
+	public AppiumDriver getDriver(String device, String OSwithDevice) throws IOException {
+		org.json.simple.JSONObject jsonObject = null;
+		org.json.simple.JSONObject jsonObject1 = null;
+		org.json.simple.JSONObject jsonObject2 = null;
+		try {
+
+			String cwd = System.getProperty("user.dir") + "/feedFiles/DeviceCababilities.json";
+			Object obj = parser.parse(new FileReader(cwd));
+			jsonObject = (JSONObject) obj;
+			// System.out.println(cwd);
+			jsonObject1 = (JSONObject) jsonObject.get(OSwithDevice);
+			System.out.println("SAME ==" + jsonObject1);
+			jsonObject2 = (JSONObject) jsonObject1.get("capabilities");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if (device.equalsIgnoreCase("Android")) {
+
+			if (driver == null) {
+				System.out.println("*****************INFO*******************");
+				System.out.println("platformName"+jsonObject2.get("platformName").toString());
+				System.out.println("platformVersion"+jsonObject2.get("version").toString());
+				System.out.println("deviceName"+jsonObject2.get("device").toString());
+				System.out.println("app"+ jsonObject2.get("appiumServer").toString());
+				
+				/*
+					 desiredCapabilities.setCapability("platformName", "Android");
+					desiredCapabilities.setCapability("platformVersion", "9");
+					desiredCapabilities.setCapability("deviceName", "Nexus One API 28");
+					desiredCapabilities.setCapability("appWaitActivity",
+							"SplashActivity, SplashActivity,OtherActivity, *, *.SplashActivity");
+					desiredCapabilities.setCapability("app", "C:\\Appium-android\\javatest-master\\Test.apk");
+					desiredCapabilities.setCapability("udid", "emulator-5554");
+					driver = new AppiumDriver(new URL("http://127.0.0.1:4767/wd/hub/"), desiredCapabilities);
+				 */
+				System.out.println("***************************************");
+				DesiredCapabilities desiredCapabilities = DesiredCapabilities.android();
+				desiredCapabilities.setCapability("platformName", jsonObject2.get("platformName").toString());
+				desiredCapabilities.setCapability("platformVersion", jsonObject2.get("version").toString());
+				desiredCapabilities.setCapability("deviceName", jsonObject2.get("device").toString());
+				desiredCapabilities.setCapability("appWaitActivity",
+						"SplashActivity, SplashActivity,OtherActivity, *, *.SplashActivity");
+				desiredCapabilities.setCapability("app", jsonObject2.get("app").toString());
+				desiredCapabilities.setCapability("udid", jsonObject2.get("deviceudid").toString());
+				this.driver = new AppiumDriver(new URL(jsonObject2.get("appiumServer").toString() + ":" + jsonObject2.get("port").toString()+ "/wd/hub/"), desiredCapabilities);
+				this.driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+			}
+		} else if (device.equalsIgnoreCase("iOS")) {
+			DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
+			desiredCapabilities.setCapability("platformName", jsonObject2.get("platformName").toString());
+			desiredCapabilities.setCapability("platformVersion", jsonObject2.get("version").toString());
+			desiredCapabilities.setCapability("deviceName", jsonObject2.get("device").toString());
+
+			desiredCapabilities.setCapability(IOSMobileCapabilityType.BUNDLE_ID,
+					jsonObject2.get("bundleid").toString());
+
+			//desiredCapabilities.setCapability("deviceName", jsonObject2.get("device").toString());
+			desiredCapabilities.setCapability("udid", jsonObject2.get("deviceudid").toString());
+			//desiredCapabilities.setCapability("automationName", "XCUITest");
+			desiredCapabilities.setCapability("appPackage", jsonObject2.get("app_package").toString());
+			desiredCapabilities.setCapability("appActivity", jsonObject2.get("activity").toString());
+			this.driver = new IOSDriver(new URL(jsonObject2.get("appiumServer").toString() + ":" + jsonObject2.get("port").toString()+ "/wd/hub/"), desiredCapabilities);
+			this.driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+		}
+		return driver;
+
+	}
+	@AfterClass
+	public void closeDriver() {
+		if (null != this.driver) {
+			// driver.resetApp();
+			this.driver.closeApp();
+			this.driver.launchApp();
+			// driver = null;
+		}
+	}
+
+}
