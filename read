@@ -1,2 +1,36 @@
 Read me 
 new URL(jsonObject2.get("appiumServer").toString() + ":" + jsonObject2.get("port").toString()+ "/wd/hub/"
+
+
+
+
+
+System.out.println("*****************INFO*******************");
+				System.out.println("platformName"+jsonObject2.get("platformName").toString());
+				System.out.println("platformVersion"+jsonObject2.get("version").toString());
+				System.out.println("deviceName"+jsonObject2.get("device").toString());
+				System.out.println("app"+ jsonObject2.get("appiumServer").toString());
+				
+				/*
+					 desiredCapabilities.setCapability("platformName", "Android");
+					desiredCapabilities.setCapability("platformVersion", "9");
+					desiredCapabilities.setCapability("deviceName", "Nexus One API 28");
+					desiredCapabilities.setCapability("appWaitActivity",
+							"SplashActivity, SplashActivity,OtherActivity, *, *.SplashActivity");
+					desiredCapabilities.setCapability("app", "C:\\Appium-android\\javatest-master\\Test.apk");
+					desiredCapabilities.setCapability("udid", "emulator-5554");
+					driver = new AppiumDriver(new URL("http://127.0.0.1:4767/wd/hub/"), desiredCapabilities);
+				 */
+				System.out.println("***************************************");
+				DesiredCapabilities desiredCapabilities = DesiredCapabilities.android();
+				desiredCapabilities.setCapability("platformName", jsonObject2.get("platformName").toString());
+				desiredCapabilities.setCapability("platformVersion", jsonObject2.get("version").toString());
+				desiredCapabilities.setCapability("deviceName", jsonObject2.get("device").toString());
+				desiredCapabilities.setCapability("appWaitActivity",
+						"SplashActivity, SplashActivity,OtherActivity, *, *.SplashActivity");
+				desiredCapabilities.setCapability("app", jsonObject2.get("app").toString());
+				desiredCapabilities.setCapability("udid", jsonObject2.get("deviceudid").toString());
+				driver = new AppiumDriver(new URL(jsonObject2.get("appiumServer").toString() + ":" + jsonObject2.get("port").toString()+ "/wd/hub/"), desiredCapabilities);
+				driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+        
+        
