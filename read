@@ -1,0 +1,2 @@
+Read me 
+new URL(jsonObject2.get("appiumServer").toString() + ":" + jsonObject2.get("port").toString()+ "/wd/hub/"
