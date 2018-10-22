@@ -34,3 +34,190 @@ System.out.println("*****************INFO*******************");
 				driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
         
         
+************************************** New page ***************
+
+/**
+ * 
+ */
+package com.indecomm.api;
+
+import java.io.File;
+import java.io.FileReader;
+
+/**
+ * @author navjotkochar
+ */
+
+import java.io.IOException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ContainerFactory;
+import org.json.simple.parser.JSONParser;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+
+import com.mongodb.util.JSON;
+
+import Cucumber_Selenium.Cucumber_Selenium.appiumserverSetup;
+import io.appium.java_client.AppiumDriver;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.ios.IOSDriver;
+import io.appium.java_client.remote.IOSMobileCapabilityType;
+import io.appium.java_client.service.local.AppiumDriverLocalService;
+import io.appium.java_client.service.local.AppiumServiceBuilder;
+
+public class AppiumDriverContext {
+	// public static IOSDriverContext driverContext;
+	public static AppiumDriver driver;
+	static JSONParser parser = new JSONParser();
+	static AppiumDriverLocalService appiumserverstart;
+
+	public static AppiumDriver getDriver(String device, String OSwithDevice) throws IOException {
+		org.json.simple.JSONObject jsonObject = null;
+		org.json.simple.JSONObject jsonObject1 = null;
+		org.json.simple.JSONObject jsonObject2 = null;
+		try {
+
+			String cwd = System.getProperty("user.dir") + "/feedFiles/DeviceCababilities.json";
+			Object obj = parser.parse(new FileReader(cwd));
+			jsonObject = (JSONObject) obj;
+			// System.out.println(cwd);
+			jsonObject1 = (JSONObject) jsonObject.get(OSwithDevice);
+			System.out.println("SAME ==" + jsonObject1);
+			jsonObject2 = (JSONObject) jsonObject1.get("capabilities");
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if (device.equalsIgnoreCase(constant.DEVICE_PLATFORM_NAME_ANDROID)) {
+
+			if (driver == null) {
+
+				DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
+				desiredCapabilities.setCapability("platformName", jsonObject2.get("platformName").toString());
+				desiredCapabilities.setCapability("platformVersion", jsonObject2.get("version").toString());
+				desiredCapabilities.setCapability("deviceName", jsonObject2.get("device").toString());
+				desiredCapabilities.setCapability("appWaitActivity",
+						"SplashActivity, SplashActivity,OtherActivity, *, *.SplashActivity");
+				desiredCapabilities.setCapability("app", jsonObject2.get("app").toString());
+				
+			
+				try {
+					appiumserverstart = AppiumDriverContext.appiumStart(Integer.parseInt(jsonObject2.get("port").toString()));
+					driver = new AppiumDriver(new URL(appiumserverstart.getUrl().toString()), desiredCapabilities);
+					driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+					
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		
+			}
+		} else if (device.equalsIgnoreCase(constant.DEVICE_PLATFORM_NAME_IOS)) {
+			DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
+			desiredCapabilities.setCapability("platformName", jsonObject2.get("platformName").toString());
+			desiredCapabilities.setCapability("platformVersion", jsonObject2.get("version").toString());
+			desiredCapabilities.setCapability("deviceName", jsonObject2.get("device").toString());
+
+			desiredCapabilities.setCapability(IOSMobileCapabilityType.BUNDLE_ID,
+					jsonObject2.get("bundleid").toString());
+
+			// desiredCapabilities.setCapability("deviceName",
+			// jsonObject2.get("device").toString());
+			desiredCapabilities.setCapability("udid", jsonObject2.get("deviceudid").toString());
+			// desiredCapabilities.setCapability("automationName", "XCUITest");
+			desiredCapabilities.setCapability("appPackage", jsonObject2.get("app_package").toString());
+			desiredCapabilities.setCapability("appActivity", jsonObject2.get("activity").toString());
+			driver = new IOSDriver(new URL(jsonObject2.get("appiumServer").toString()), desiredCapabilities);
+			driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
+		} else if (device.equalsIgnoreCase(constant.DEVICE_PLATFORM_NAME_CLOUD)) {
+			
+			String URL = "https://" + constant.SAUCE_CLOUD_USERNAME + ":" + constant.SAUCE_CLOUD_ACCESS_KEY + constant.SAUCE_CLOUD_URL;
+
+			DesiredCapabilities caps = DesiredCapabilities.iphone();
+			caps.setCapability("appiumVersion", "1.9.1");
+			caps.setCapability("deviceName", "iPhone XS Simulator");
+			caps.setCapability("deviceOrientation", "portrait");
+			caps.setCapability("platformVersion", "12.0");
+			caps.setCapability("platformName", "iOS");
+			caps.setCapability("browserName", "");
+			caps.setCapability("app", constant.SAUCE_CLOUD_IPA_PATH);
+
+			driver = new IOSDriver(new URL(URL), caps);
+		}
+		
+
+		return driver;
+
+	}
+	
+	public static AppiumDriverLocalService appiumStart( int DEVICE_PORT ) throws InterruptedException {
+		AppiumDriverLocalService appiumService;
+	    String appiumServiceUrl;
+	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		
+	    System.out.println("--- Appium Initialise ---" );
+		Thread.sleep(1000);
+		
+		appiumService=AppiumDriverLocalService.buildService( new AppiumServiceBuilder().usingPort(DEVICE_PORT));
+		appiumService.start();
+		appiumServiceUrl = appiumService.getUrl().toString();
+		return appiumService;
+	}
+	
+	public static AppiumDriverLocalService appiumStart( int DEVICE_PORT ) throws InterruptedException {
+		AppiumDriverLocalService appiumService;
+	    String appiumServiceUrl;
+	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		
+	    System.out.println("--- Appium Initialise ---" );
+		Thread.sleep(1000);
+		
+		appiumService=AppiumDriverLocalService.buildService( new AppiumServiceBuilder().usingPort(DEVICE_PORT));
+		appiumService.start();
+		appiumServiceUrl = appiumService.getUrl().toString();
+		return appiumService;
+	}
+	public static void closeDriver() {
+		if (null != driver) {
+			// driver.resetApp();
+			driver.closeApp();
+			driver.launchApp();
+			appiumserverstart.stop();
+			// driver = null;
+		}
+	}
+
+}
+
+
+************** Constant Java ***************
+
+package com.indecomm.api;
+
+public class constant {
+		public static final String DEVICE_PLATFORM_NAME_ANDROID = "Android";
+		public static final String DEVICE_PLATFORM_NAME_IOS = "iOS";
+		public static final String DEVICE_PLATFORM_NAME_CLOUD = "cloud";
+		public static final String SAUCE_CLOUD_USERNAME = "cloud";
+		public static final String SAUCE_CLOUD_ACCESS_KEY = "cloud";
+		public static final String SAUCE_CLOUD_URL = "@ondemand.saucelabs.com:443/wd/hub";
+		public static final String SAUCE_CLOUD_APK_PATH = "https://s3.amazonaws.com/appium/TestApp8.4.app.zip";
+		public static final String SAUCE_CLOUD_IPA_PATH = "https://s3.amazonaws.com/appium/TestApp8.4.app.zip";
+		
+		public static String WIN_NODE_PATH ="C:/Program Files/nodejs/node.exe";
+		public static String WIN_APPIUM_MAINJS_PATH = "C:/Program Files (x86)/Appium/resources/app/node_modules/appium/build/lib/main.js";
+
+}
